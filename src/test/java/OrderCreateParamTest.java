@@ -39,6 +39,8 @@ public class OrderCreateParamTest extends BaseOrderTest {
         Order order = OrderGenerator.getRandomOrder(colors);
         Response response = sendCreateOrderRequest(order);
         verifyOrderCreationResponse(response);
+
+        orderTrack = response.jsonPath().getString("track");
     }
 
     @Step("Отправляем запрос на создание заказа: {order}")

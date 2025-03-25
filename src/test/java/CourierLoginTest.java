@@ -1,5 +1,4 @@
 import io.qameta.allure.Description;
-import io.qameta.allure.Step;
 import io.qameta.allure.junit4.DisplayName;
 import io.restassured.response.Response;
 import model.Courier;
@@ -34,6 +33,15 @@ public class CourierLoginTest extends BaseCourierTest {
         verifyStatusAndFieldStep(response, HttpStatus.SC_BAD_REQUEST, "message", equalTo(MESSAGE_INSUFFICIENT_DATA));
     }
 
+    // Возвращается 504 с сервера (Баг?)
+    @Test
+    @DisplayName("Система возвращает ошибку при попытке входа без пароля")
+    @Description("Проверяем, что система возвращает ошибку, если не передан пароль")
+    public void loginWithoutPasswordReturnsError() {
+        Response response = loginCourierStep("login", null);
+        verifyStatusAndFieldStep(response, HttpStatus.SC_BAD_REQUEST, "message", equalTo(MESSAGE_INSUFFICIENT_DATA));
+    }
+
     @Test
     @DisplayName("Система возвращает ошибку при неверном пароле")
     @Description("Проверяем, что система возвращает ошибку при неверном пароле")
@@ -53,22 +61,5 @@ public class CourierLoginTest extends BaseCourierTest {
     public void loginNonExistentUserReturnsError() {
         Response response = loginCourierStep("nonexistent", "password");
         verifyStatusAndFieldStep(response, HttpStatus.SC_NOT_FOUND, "message", equalTo(MESSAGE_USER_NOT_FOUND));
-    }
-
-    @Step("Создаем курьера: {courier}")
-    private void createCourierStep(Courier courier) {
-        courierClient.create(courier);
-    }
-
-    @Step("Выполняем авторизацию курьера с логином: {login} и паролем: {password}")
-    private Response loginCourierStep(String login, String password) {
-        return courierClient.login(login, password);
-    }
-
-    @Step("Проверяем, что статус-код равен {expectedStatusCode} и поле {fieldName} соответствует условию")
-    private void verifyStatusAndFieldStep(Response response, int expectedStatusCode, String fieldName, Object matcher) {
-        response.then()
-                .statusCode(expectedStatusCode)
-                .body(fieldName, (org.hamcrest.Matcher<?>) matcher);
     }
 }

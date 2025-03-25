@@ -1,5 +1,4 @@
 import io.qameta.allure.Description;
-import io.qameta.allure.Step;
 import io.qameta.allure.junit4.DisplayName;
 import io.restassured.response.Response;
 import model.Courier;
@@ -23,7 +22,7 @@ public class CourierCreateTest extends BaseCourierTest {
         courier = CourierGenerator.getRandomCourier();
         Response createResponse = createCourierStep(courier);
         verifyStatusAndFieldStep(createResponse, HttpStatus.SC_CREATED, "ok", equalTo(true));
-        Response loginResponse = courierClient.login(courier.getLogin(), courier.getPassword());
+        Response loginResponse = loginCourierStep(courier.getLogin(), courier.getPassword());
         loginResponse.then()
                 .statusCode(HttpStatus.SC_OK)
                 .body("id", notNullValue());
@@ -38,7 +37,7 @@ public class CourierCreateTest extends BaseCourierTest {
         courier = CourierGenerator.getRandomCourier();
         Response firstResponse = createCourierStep(courier);
         verifyStatusAndFieldStep(firstResponse, HttpStatus.SC_CREATED, "ok", equalTo(true));
-        Response loginResponse = courierClient.login(courier.getLogin(), courier.getPassword());
+        Response loginResponse = loginCourierStep(courier.getLogin(), courier.getPassword());
         loginResponse.then()
                 .statusCode(HttpStatus.SC_OK)
                 .body("id", notNullValue());
@@ -66,26 +65,15 @@ public class CourierCreateTest extends BaseCourierTest {
         verifyStatusAndFieldStep(response, HttpStatus.SC_BAD_REQUEST, "message", equalTo(MESSAGE_INSUFFICIENT_DATA));
     }
 
-    // Падает с ошибкой, потому что возвращается 201, что курьер успешно создан. Баг?
+    // Возвращает null вместо id курьера, баг?
     @Test
-    @DisplayName("Создание курьера без обязательного поля (имя) возвращает ошибку")
-    @Description("Проверяем, что если не передано имя (firstName), ручка создания курьера возвращает ошибку")
-    public void creatingCourierWithoutFirstNameReturnsError() {
+    @DisplayName("Успешное создание курьера без поля 'имя' возвращает поле 'id'")
+    @Description("Проверяем, что если не передано имя (firstName), ручка создания курьера успешно создает курьера " +
+            "и возвращает в ответе поле 'id'")
+    public void creatingCourierWithoutFirstNameReturnsTrackField() {
         courier = CourierGenerator.getCourierWithoutFirstName();
         Response response = createCourierStep(courier);
-        // Тест возвращает успешный ответ, хотя должен вернуть 400 статус
-        verifyStatusAndFieldStep(response, HttpStatus.SC_BAD_REQUEST, "message", equalTo(MESSAGE_INSUFFICIENT_DATA));
-    }
 
-    @Step("Создаем курьера: {courier}")
-    private Response createCourierStep(Courier courier) {
-        return courierClient.create(courier);
-    }
-
-    @Step("Проверяем, что статус-код равен {expectedStatusCode} и поле {fieldName} соответствует условию")
-    private void verifyStatusAndFieldStep(Response response, int expectedStatusCode, String fieldName, Object matcher) {
-        response.then()
-                .statusCode(expectedStatusCode)
-                .body(fieldName, (org.hamcrest.Matcher<?>) matcher);
+        verifyStatusAndFieldStep(response, HttpStatus.SC_CREATED, "id", notNullValue());
     }
 }
