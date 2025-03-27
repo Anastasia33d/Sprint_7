@@ -65,15 +65,13 @@ public class CourierCreateTest extends BaseCourierTest {
         verifyStatusAndFieldStep(response, HttpStatus.SC_BAD_REQUEST, "message", equalTo(MESSAGE_INSUFFICIENT_DATA));
     }
 
-    // Возвращает null вместо id курьера, баг?
     @Test
-    @DisplayName("Успешное создание курьера без поля 'имя' возвращает поле 'id'")
-    @Description("Проверяем, что если не передано имя (firstName), ручка создания курьера успешно создает курьера " +
-            "и возвращает в ответе поле 'id'")
+    @DisplayName("Успешное создание курьера без поля 'имя'")
+    @Description("Проверяем, что если не передано имя (firstName), ручка создания курьера создает курьера и успешный запрос возвращает ok: true")
     public void creatingCourierWithoutFirstNameReturnsTrackField() {
         courier = CourierGenerator.getCourierWithoutFirstName();
         Response response = createCourierStep(courier);
 
-        verifyStatusAndFieldStep(response, HttpStatus.SC_CREATED, "id", notNullValue());
+        verifyStatusAndFieldStep(response, HttpStatus.SC_CREATED, "ok", equalTo(true));
     }
 }
